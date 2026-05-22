@@ -1,0 +1,63 @@
+{
+  "name": "uapic-led-player",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Digital Signage Player",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && electron-builder"
+  },
+  "build": {
+    "appId": "com.uapic.ledplayer",
+    "productName": "Uapic LED Player",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "icon": "icon.png",
+    "fileAssociations": [
+      {
+        "ext": "ulp",
+        "name": "Uapic Project File",
+        "description": "Uapic LED Player Scene Project",
+        "role": "Editor"
+      }
+    ],
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  },
+  "dependencies": {
+    "konva": "^10.3.0",
+    "lucide-react": "^1.16.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-konva": "^19.2.4",
+    "zustand": "^5.0.13"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.2",
+    "autoprefixer": "^10.5.0",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^42.2.0",
+    "electron-builder": "^26.8.1",
+    "esbuild": "^0.28.0",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^3.4.19",
+    "vite": "^8.0.14",
+    "vite-plugin-electron": "^0.29.1",
+    "vite-plugin-electron-renderer": "^0.14.7",
+    "wait-on": "^9.0.10"
+  }
+}

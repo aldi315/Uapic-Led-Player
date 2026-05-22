@@ -1,0 +1,59 @@
+/* Player window base styles — ultra-minimal, no UI chrome */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #000000;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  /* Make the entire player window draggable */
+  -webkit-app-region: drag;
+}
+
+/* GPU acceleration layer for all media objects */
+.media-object {
+  position: absolute;
+  transform: translate3d(0, 0, 0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* Video element fills its container */
+.media-object video {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Image fills its container */
+.media-object img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Running text animation */
+@keyframes scroll-left {
+  0%   { transform: translate3d(100%, 0, 0); }
+  100% { transform: translate3d(-100%, 0, 0); }
+}
+
+@keyframes scroll-right {
+  0%   { transform: translate3d(-100%, 0, 0); }
+  100% { transform: translate3d(100%, 0, 0); }
+}
+
+.running-text-inner {
+  display: inline-block;
+  white-space: nowrap;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.running-text-left  { animation-name: scroll-left; }
+.running-text-right { animation-name: scroll-right; }
