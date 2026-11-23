@@ -1,9 +1,9 @@
 const { screen } = require('electron')
 
 /**
- * DisplayManager — future multi-monitor support for LED output.
- * Allows selecting a specific display for the player window,
- * enabling videotron and external monitor routing.
+ * DisplayManager — multi-monitor support for LED output.
+ * Lets the editor route the player window to a specific display
+ * (videotron, external monitor, LED controller input…).
  */
 class DisplayManager {
   getAllDisplays() {
@@ -19,30 +19,21 @@ class DisplayManager {
     return screen.getAllDisplays().filter((d) => d.id !== primary.id)
   }
 
-  /**
-   * Move a BrowserWindow to a specific display.
-   * @param {BrowserWindow} browserWindow
-   * @param {Electron.Display} display
-   */
+  getDisplayById(id) {
+    return screen.getAllDisplays().find((d) => String(d.id) === String(id)) || null
+  }
+
+  /** Move a BrowserWindow to the top-left corner of a display. */
   moveWindowToDisplay(browserWindow, display) {
     const { x, y } = display.bounds
     browserWindow.setPosition(x, y)
   }
 
-  /**
-   * Set a BrowserWindow to fullscreen on a specific display.
-   * @param {BrowserWindow} browserWindow
-   * @param {Electron.Display} display
-   */
+  /** Cover a display completely with a BrowserWindow. */
   setFullscreenOnDisplay(browserWindow, display) {
     const { x, y, width, height } = display.bounds
-    browserWindow.setPosition(x, y)
-    browserWindow.setSize(width, height)
+    browserWindow.setBounds({ x, y, width, height })
     browserWindow.setFullScreen(true)
-  }
-
-  getDisplayById(id) {
-    return screen.getAllDisplays().find((d) => d.id === id) || null
   }
 }
 

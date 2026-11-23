@@ -5,3 +5,4 @@ dist-electron/
 *.local
 .env
 .DS_Store
+release/
