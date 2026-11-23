@@ -9,6 +9,9 @@ const { setupMediaIPC } = require('./ipc/mediaIPC')
 const { setupDialogIPC, readProjectFile } = require('./ipc/dialogIPC')
 const { setupDisplayIPC } = require('./ipc/displayIPC')
 
+// Referer sent with YouTube embeds when the page itself provides none
+const YOUTUBE_EMBED_REFERER = 'https://uapic.co.id/'
+
 // ── Single instance ──────────────────────────────────────────────────────────
 // Double-clicking a .ulp file while the app is running opens it in the
 // existing instance instead of launching a second player.
@@ -90,6 +93,18 @@ app.whenReady().then(() => {
       headers: request.headers, // keep Range headers so videos can seek
     })
   })
+
+  // YouTube refuses embeds that arrive without a Referer ("Error 153 – video
+  // player configuration error"). The packaged app loads its pages from
+  // file://, which sends none, so give the embed player an identifying one.
+  session.defaultSession.webRequest.onBeforeSendHeaders(
+    { urls: ['https://www.youtube.com/embed/*', 'https://www.youtube-nocookie.com/embed/*'] },
+    (details, callback) => {
+      const headers = details.requestHeaders
+      if (!headers.Referer && !headers.referer) headers.Referer = YOUTUBE_EMBED_REFERER
+      callback({ requestHeaders: headers })
+    }
+  )
 
   controlWindow = createControlWindow()
   const player = createPlayerWindow()

@@ -215,3 +215,8 @@ button:disabled { opacity: 0.35; cursor: default !important; pointer-events: non
   from { opacity: 0; transform: translate(-50%, 8px); }
   to   { opacity: 1; transform: translate(-50%, 0); }
 }
+
+/* ── Brand logo ───────────────────────────────────────────────────────────── */
+.titlebar-logo { height: 11px; width: auto; display: block; margin-right: 2px; }
+.about-logo { width: 180px; height: auto; margin: 6px 0 4px; }
+.prop-hint--error { color: #f87171; }

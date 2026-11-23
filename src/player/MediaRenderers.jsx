@@ -9,6 +9,7 @@
  */
 import React, { useEffect, useLayoutEffect, useRef, useState, memo } from 'react'
 import { fetchWeather, describeWeather } from '../engine/weather'
+import { parseYouTube, buildEmbedUrl, thumbnailUrl, describeYouTube } from '../engine/youtube'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -264,6 +265,83 @@ const HtmlObject = memo(function HtmlObject({ obj, preview }) {
   )
 })
 
+// ─── YouTube (video / live stream / playlist) ────────────────────────────────
+
+function YouTubePreview({ info, obj }) {
+  const thumb = thumbnailUrl(info)
+  return (
+    <div style={{
+      ...FILL, position: 'relative', background: '#0f0f0f',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+    }}>
+      {thumb && (
+        <img src={thumb} alt="" draggable={false}
+          style={{ ...FILL, position: 'absolute', inset: 0, objectFit: 'cover', opacity: 0.85 }} />
+      )}
+      <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+        <svg viewBox="0 0 68 48" width={Math.max(40, Math.min(obj.width, obj.height) * 0.22)}>
+          <path d="M66.5 7.7a8.5 8.5 0 0 0-6-6C55.2.3 34 .3 34 .3s-21.2 0-26.5 1.4a8.5 8.5 0 0 0-6 6C.1 13 .1 24 .1 24s0 11 1.4 16.3a8.5 8.5 0 0 0 6 6C12.8 47.7 34 47.7 34 47.7s21.2 0 26.5-1.4a8.5 8.5 0 0 0 6-6C67.9 35 67.9 24 67.9 24s0-11-1.4-16.3z" fill="#f00" />
+          <path d="M45 24 27 14v20z" fill="#fff" />
+        </svg>
+        {!thumb && (
+          <div style={{ color: '#fff', fontSize: 24, fontFamily: 'Inter, sans-serif', textShadow: '0 1px 3px #000', textAlign: 'center', padding: '0 12px' }}>
+            {info?.kind === 'channel' ? 'Channel live stream' : info?.kind === 'playlist' ? 'YouTube playlist' : 'YouTube'}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+const YouTubeObject = memo(function YouTubeObject({ obj, isPaused, playCommand, preview }) {
+  const frameRef = useRef(null)
+  const info = parseYouTube(obj.youtubeUrl)
+  const src = buildEmbedUrl(info, {
+    muted: obj.muted !== false,
+    controls: !!obj.youtubeControls,
+    loop: obj.loop !== false,
+    captions: !!obj.youtubeCaptions,
+    start: obj.youtubeStart,
+  })
+
+  // Commands go to the embedded player through its postMessage JS API
+  const send = (func, args = []) => {
+    frameRef.current?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), '*')
+  }
+  const applyState = () => {
+    send('setVolume', [Math.round(Math.min(1, Math.max(0, Number(obj.volume ?? 1))) * 100)])
+    if (playCommand === 'stop') send('stopVideo')
+    else if (isPaused) send('pauseVideo')
+    else send('playVideo')
+  }
+  const stateRef = useRef(applyState)
+  stateRef.current = applyState
+
+  useEffect(() => {
+    if (!preview) stateRef.current()
+  }, [isPaused, playCommand, obj.volume, preview])
+
+  if (preview) {
+    if (!obj.youtubeUrl) return <Placeholder label="▶ Paste a YouTube link" color="#ff4444" />
+    if (!src) return <Missing preview label={describeYouTube(info)} />
+    return <YouTubePreview info={info} obj={obj} />
+  }
+  if (!src) return null
+
+  return (
+    <iframe
+      ref={frameRef}
+      key={src}
+      title={obj.name}
+      src={src}
+      allow="autoplay; encrypted-media; picture-in-picture"
+      referrerPolicy="strict-origin-when-cross-origin"
+      onLoad={() => setTimeout(() => stateRef.current(), 800)}
+      style={{ ...FILL, border: 0, background: '#000', pointerEvents: obj.youtubeControls ? 'auto' : 'none' }}
+    />
+  )
+})
+
 // ─── Color block ─────────────────────────────────────────────────────────────
 
 const ColorObject = memo(function ColorObject({ obj }) {
@@ -456,6 +534,7 @@ const RENDERERS = {
   image: ImageObject,
   text: TextObject,
   html: HtmlObject,
+  youtube: YouTubeObject,
   color: ColorObject,
   clock: ClockObject,
   weather: WeatherObject,

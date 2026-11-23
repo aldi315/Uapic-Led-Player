@@ -4,7 +4,7 @@ import {
   Video, Image as ImageIcon, Type, Code2,
   Clock, Cloud, AlignLeft, Square, Layers,
   Trash2, Copy, ChevronUp, ChevronDown, Eye, EyeOff, ListVideo,
-  Lock, Unlock, FolderOpen,
+  Lock, Unlock, FolderOpen, TvMinimalPlay,
 } from 'lucide-react'
 import { importMedia } from '../projectActions'
 
@@ -14,6 +14,7 @@ export const TYPE_META = {
   text:           { label: 'Text',         icon: Type,       color: '#f59e0b' },
   'running-text': { label: 'Running Text', icon: AlignLeft,  color: '#f97316' },
   playlist:       { label: 'Playlist',     icon: ListVideo,  color: '#8b5cf6' },
+  youtube:        { label: 'YouTube',      icon: TvMinimalPlay, color: '#ff3b3b' },
   html:           { label: 'HTML / Web',   icon: Code2,      color: '#a855f7' },
   clock:          { label: 'Clock',        icon: Clock,      color: '#06b6d4' },
   weather:        { label: 'Weather',      icon: Cloud,      color: '#38bdf8' },

@@ -3,6 +3,7 @@ import useEditorStore from '../../store/useEditorStore'
 import { CANVAS_PRESETS } from '../../data/scenes/defaultScene'
 import { VIDEO_EXT, IMAGE_EXT, mediaTypeFromName } from '../projectActions'
 import { TYPE_META } from './MediaLibrary'
+import { parseYouTube, describeYouTube } from '../../engine/youtube'
 import {
   Settings2, Layers, Monitor, Copy, Trash2, FolderOpen, ArrowLeftRight,
   AlignStartVertical, AlignCenterVertical, AlignEndVertical,
@@ -307,6 +308,40 @@ function HtmlProps({ obj, update }) {
   )
 }
 
+function YouTubeProps({ obj, update }) {
+  const info = parseYouTube(obj.youtubeUrl)
+  const ok = info && info.kind !== 'handle'
+  return (
+    <>
+      <TextInput label="YOUTUBE LINK" value={obj.youtubeUrl || ''} onChange={(v) => update({ youtubeUrl: v.trim() })}
+        placeholder="https://youtube.com/watch?v=… or /live/…" mono />
+      {obj.youtubeUrl && (
+        <div className={`prop-hint ${ok ? '' : 'prop-hint--error'}`}>{describeYouTube(info)}</div>
+      )}
+      <div className="prop-row">
+        <Checkbox label="Muted" checked={obj.muted !== false} onChange={(v) => update({ muted: v }, null)} />
+        <Checkbox label="Loop" checked={obj.loop !== false} onChange={(v) => update({ loop: v }, null)} />
+      </div>
+      {obj.muted === false && (
+        <RangeInput label="VOLUME" value={Math.round((obj.volume ?? 1) * 100)} min={0} max={100} unit="%"
+          onChange={(v) => update({ volume: v / 100 })} />
+      )}
+      <div className="prop-row">
+        <Checkbox label="Controls" checked={!!obj.youtubeControls} onChange={(v) => update({ youtubeControls: v }, null)} />
+        <Checkbox label="Captions" checked={!!obj.youtubeCaptions} onChange={(v) => update({ youtubeCaptions: v }, null)} />
+      </div>
+      {info?.kind === 'video' && (
+        <NumberInput label="START AT" value={obj.youtubeStart || 0} onChange={(v) => update({ youtubeStart: v })} min={0} unit="s" />
+      )}
+      <div className="prop-hint">
+        Works with videos, live streams (/live/…), playlists and a channel's live stream (channel ID UC…).
+        Internet required; the editor shows a thumbnail — push to the output to play.
+        Some videos block embedding by their owner.
+      </div>
+    </>
+  )
+}
+
 function ClockProps({ obj, update }) {
   return (
     <>
@@ -554,6 +589,7 @@ export default function PropertiesInspector() {
       case 'image':        return <ImageProps obj={obj} update={update} />
       case 'text':         return <TextProps obj={obj} update={update} />
       case 'html':         return <HtmlProps obj={obj} update={update} />
+      case 'youtube':      return <YouTubeProps obj={obj} update={update} />
       case 'clock':        return <ClockProps obj={obj} update={update} />
       case 'weather':      return <WeatherProps obj={obj} update={update} />
       case 'running-text': return <RunningTextProps obj={obj} update={update} />

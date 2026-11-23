@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import useEditorStore from '../../store/useEditorStore'
-import { Minus, Maximize2, Minimize2, X, MonitorPlay, Check } from 'lucide-react'
+import { Minus, Maximize2, Minimize2, X, Check } from 'lucide-react'
+import uapicLogo from '../../assets/uapic-logo.png'
 import {
   newProject, openProject, saveProject, importMedia, pushScene,
 } from '../projectActions'
@@ -156,8 +157,8 @@ export default function Titlebar({ onShowShortcuts, onShowAbout }) {
   return (
     <div className="titlebar titlebar-drag">
       <div className="titlebar-brand titlebar-no-drag">
-        <MonitorPlay size={14} className="titlebar-icon" />
-        <span className="titlebar-app-name">UAPIC LED PLAYER</span>
+        <img src={uapicLogo} alt="UAPIC" className="titlebar-logo" draggable={false} />
+        <span className="titlebar-app-name">LED PLAYER</span>
         <Menu label="File" items={fileItems} {...menuProps} />
         <Menu label="Edit" items={editItems} {...menuProps} />
         <Menu label="View" items={viewItems} {...menuProps} />

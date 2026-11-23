@@ -17,6 +17,7 @@ export const TYPE_LABELS = {
   image: 'Image',
   text: 'Text',
   html: 'HTML',
+  youtube: 'YouTube',
   clock: 'Clock',
   weather: 'Weather',
   'running-text': 'Running Text',
@@ -54,6 +55,10 @@ function objectDefaults(type) {
     htmlMode: 'code', // 'code' | 'url'
     htmlContent: '<div style="color:white;font-size:32px">HTML Content</div>',
     url: 'https://example.com',
+    youtubeUrl: '',
+    youtubeControls: false,
+    youtubeCaptions: false,
+    youtubeStart: 0, // seconds (videos only)
     timezone: 'Asia/Jakarta',
     clockFormat: '24',
     showSeconds: true,
@@ -80,6 +85,8 @@ function objectDefaults(type) {
       return { ...base, width: 420, height: 200, fontSize: 48 }
     case 'text':
       return { ...base, width: 600, height: 150 }
+    case 'youtube':
+      return { ...base, width: 960, height: 540, objectFit: 'contain' }
     case 'video':
     case 'image':
     case 'playlist':

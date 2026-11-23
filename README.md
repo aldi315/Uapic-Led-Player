@@ -19,6 +19,7 @@ Uapic LED Player is designed specifically for controlling Videotrons, LED matrix
     *   📜 **Running Text:** Smooth, marquee-style scrolling text (ticker).
     *   📝 **Static Text:** Custom fonts, sizes, and colors.
     *   🌐 **HTML:** Embed live web pages and dashboards.
+    *   📺 **YouTube:** Stream YouTube videos, live streams and playlists.
     *   🕒 **Clock / Weather:** Dynamic widgets.
     *   🎨 **Color Block:** Solid color backgrounds and overlays.
 *   **Playlist Media Type:** Group multiple videos and images into a single layer that automatically sequences and loops based on custom durations.
@@ -41,6 +42,7 @@ Uapic LED Player is designed specifically for controlling Videotrons, LED matrix
 *   **Weather** uses live data from [Open-Meteo](https://open-meteo.com) (no API key; city name or `lat,lon`).
 *   **Clock** with timezone, 12/24h, seconds and date line.
 *   **HTML** widget: inline HTML code or a full web page URL.
+*   **YouTube** widget: paste a video, `/live/…`, playlist or channel (`UC…`) link. Muted autoplay by default; Play / Pause / Stop in the editor control it. Internet required, and some videos block embedding.
 
 ### Project Management (.ulp)
 *   Save and load entire layout configurations using the **`.ulp` (Uapic LED Player)** project extension.

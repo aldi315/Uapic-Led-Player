@@ -5,7 +5,8 @@ import MediaLibrary from '../components/MediaLibrary'
 import EditorCanvas from '../components/EditorCanvas'
 import PropertiesInspector from '../components/PropertiesInspector'
 import useEditorStore from '../../store/useEditorStore'
-import { X, MonitorPlay } from 'lucide-react'
+import { X } from 'lucide-react'
+import uapicLogo from '../../assets/uapic-logo.png'
 
 const SHORTCUTS = [
   ['File', [
@@ -92,7 +93,7 @@ export default function EditorLayout() {
       {modal === 'about' && (
         <Modal title="About" onClose={() => setModal(null)}>
           <div className="about">
-            <MonitorPlay size={36} className="titlebar-icon" />
+            <img src={uapicLogo} alt="UAPIC" className="about-logo" draggable={false} />
             <div className="about-name">UAPIC LED Player</div>
             <div className="about-desc">
               Dual-window digital signage editor and player for LED screens, videotrons and kiosks.
