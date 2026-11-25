@@ -3,7 +3,7 @@ import EditorLayout from './layouts/EditorLayout'
 import useEditorStore from '../store/useEditorStore'
 import {
   newProject, openProject, saveProject, requestExit,
-  handleOpenResult, importMedia, pushScene, confirmDiscardChanges, startupPlayback,
+  handleOpenResult, importMedia, pushScene, confirmDiscardChanges, announceStartupPlayback, startupPlay,
 } from './projectActions'
 
 function isTypingTarget(el) {
@@ -20,11 +20,12 @@ export default function EditorApp() {
     const openFromMain = async (res) => {
       if (!res || !(await confirmDiscardChanges())) return
       handleOpenResult(res)
-      if (res.autoPlay && res.data && !res.error) startupPlayback(res.delay)
+      if (res.autoPlay && res.data && !res.error) announceStartupPlayback(res.delay)
     }
     const unsubs = [
       api.onCloseRequested?.(() => requestExit()),
       api.onOpenProjectFile?.(openFromMain),
+      api.onStartupPlay?.(() => startupPlay()),
       api.onPlayerStatus?.((status) => useEditorStore.getState().setPlayerStatus(status)),
     ]
     // Now subscribed: pick up a project opened before the editor was ready

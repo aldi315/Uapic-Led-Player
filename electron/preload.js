@@ -67,6 +67,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onOpenProjectFile: (cb) => subscribe('open-project-file', cb),
   // Editor subscribed: returns a project the main process parked for it (or null)
   editorReady: () => ipcRenderer.invoke('editor-ready'),
+  // Start-up delay over: push + play the loaded project
+  onStartupPlay: (cb) => subscribe('startup-play', cb),
 
   showMessageBox: (options) => ipcRenderer.invoke('show-message-box', options),
 

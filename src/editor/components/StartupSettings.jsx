@@ -46,40 +46,23 @@ export default function StartupSettings() {
   if (!api()?.getAppSettings) return <div className="startup-empty">Only available in the desktop app.</div>
   if (!s) return <div className="startup-empty">Loading…</div>
 
-  const fileName = s.startupProject ? s.startupProject.split(/[\\/]/).pop() : null
-  const ready = s.autoPlay && s.startupProjectExists
+  const fileName = s.startupProject ? s.startupProject.split(/[\/]/).pop() : null
+  const hasProject = !!s.startupProject && s.startupProjectExists
+  const restartReady = hasProject && s.startWithWindows && s.canStartWithWindows
 
   return (
     <div className="startup">
-      <div className={`startup-status ${ready && s.startWithWindows ? 'startup-status--on' : ''}`}>
-        {ready && s.startWithWindows
-          ? `After a restart, Windows opens the player and plays "${fileName}" automatically.`
-          : ready
-            ? `Opening the app plays "${fileName}" automatically. Turn on "Start with Windows" to also survive restarts.`
-            : 'Automatic playback is off.'}
+      <div className={`startup-status ${restartReady ? 'startup-status--on' : ''}`}>
+        {restartReady
+          ? `Ready: after a restart Windows opens the player and plays "${fileName}" by itself${s.startupDelay ? ` (after ${s.startupDelay} s)` : ''}.`
+          : !hasProject
+            ? 'Step 1: choose the project to play at start-up.'
+            : 'Step 2: turn on "Start with Windows".'}
       </div>
 
       <section className="startup-section">
-        <label className="prop-checkbox-label startup-check">
-          <input type="checkbox" checked={!!s.startWithWindows} disabled={!s.canStartWithWindows}
-            onChange={(e) => change({ startWithWindows: e.target.checked })} />
-          Start with Windows
-        </label>
-        <div className="prop-hint">
-          Opens UAPIC LED Player automatically when Windows signs in.
-          {!s.canStartWithWindows && ' Only available in the installed app.'}
-        </div>
-        {note && <div className="prop-hint prop-hint--error">{note}</div>}
-      </section>
-
-      <section className="startup-section">
-        <label className="prop-checkbox-label startup-check">
-          <input type="checkbox" checked={!!s.autoPlay} onChange={(e) => change({ autoPlay: e.target.checked })} />
-          Play a project automatically when the app opens
-        </label>
-
         <div className="prop-field">
-          <label className="prop-label">STARTUP PROJECT</label>
+          <label className="prop-label">1 · STARTUP PROJECT</label>
           <div className="prop-file-row">
             <input className="prop-input prop-input--mono" readOnly value={s.startupProject || ''}
               placeholder="No project chosen" title={s.startupProject || ''} />
@@ -92,10 +75,23 @@ export default function StartupSettings() {
             <Save size={12} /> {currentFilePath && !isDirty ? 'Use the open project' : 'Save and use the open project'}
           </button>
         </div>
+      </section>
+
+      <section className="startup-section">
+        <label className="prop-checkbox-label startup-check">
+          <input type="checkbox" checked={!!s.startWithWindows} disabled={!s.canStartWithWindows}
+            onChange={(e) => change({ startWithWindows: e.target.checked })} />
+          2 · Start with Windows and play the startup project
+        </label>
+        <div className="prop-hint">
+          Windows opens UAPIC LED Player when it signs in; the startup project is loaded, pushed and played.
+          {!s.canStartWithWindows && ' Only available in the installed app.'}
+        </div>
+        {note && <div className="prop-hint prop-hint--error">{note}</div>}
 
         <div className="prop-grid-2">
           <div className="prop-field">
-            <label className="prop-label">DELAY AFTER WINDOWS START</label>
+            <label className="prop-label">DELAY BEFORE PLAY</label>
             <div className="prop-input-wrap">
               <input type="number" className="prop-input" min={0} max={300} value={s.startupDelay}
                 onChange={(e) => setS({ ...s, startupDelay: e.target.value })}
@@ -106,9 +102,16 @@ export default function StartupSettings() {
         </div>
         <div className="prop-hint">Gives displays, the LED sender card and the network time to come up first.</div>
 
-        <label className="prop-checkbox-label startup-check">
+        <label className="prop-checkbox-label">
           <input type="checkbox" checked={!!s.minimizeEditor} onChange={(e) => change({ minimizeEditor: e.target.checked })} />
           Minimize the editor after a Windows start
+        </label>
+      </section>
+
+      <section className="startup-section">
+        <label className="prop-checkbox-label">
+          <input type="checkbox" checked={!!s.autoPlay} onChange={(e) => change({ autoPlay: e.target.checked })} />
+          Also play the startup project when I open the app myself
         </label>
       </section>
 

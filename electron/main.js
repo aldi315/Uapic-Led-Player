@@ -73,13 +73,29 @@ function openProjectInControl(filePath, extra = {}) {
 
 let editorReady = false
 let pendingOpen = null
+let resolveEditorReady
+const editorReadyPromise = new Promise((resolve) => { resolveEditorReady = resolve })
 
 ipcMain.handle('editor-ready', () => {
   editorReady = true
+  resolveEditorReady()
   const res = pendingOpen
   pendingOpen = null
   return res
 })
+
+/**
+ * Start-up playback: load the project now, then — once the editor is up and
+ * the delay has passed — tell it to push + play. The countdown runs here in
+ * the main process: timers in a minimized editor window can be throttled.
+ */
+async function startupPlayback(filePath, delaySeconds) {
+  openProjectInControl(filePath, { autoPlay: true, delay: delaySeconds })
+  await editorReadyPromise
+  // At least a moment for the editor to apply the project it just received
+  const ms = Math.max(1, Number(delaySeconds) || 0) * 1000
+  setTimeout(() => getControlWindow()?.webContents.send('startup-play'), ms)
+}
 
 app.on('second-instance', (event, argv) => {
   const win = getControlWindow()
@@ -133,13 +149,11 @@ app.whenReady().then(() => {
     // A double-clicked .ulp wins over the start-up project
     openProjectInControl(pendingProjectPath)
     pendingProjectPath = null
-  } else if (settings.autoPlay && settings.startupProject) {
-    // Start-up playback: open the chosen project, then push + play it. After a
-    // Windows sign-in wait a little so displays, LED senders and network are up.
-    openProjectInControl(settings.startupProject, {
-      autoPlay: true,
-      delay: atLogin ? settings.startupDelay : 1,
-    })
+  } else if (settings.startupProject && (atLogin || settings.autoPlay)) {
+    // Started by Windows with a startup project → always play it (that is the
+    // point of "Start with Windows"); a manual launch plays only with autoPlay.
+    // After a Windows sign-in wait a little so displays, LED senders and network are up.
+    startupPlayback(settings.startupProject, atLogin ? settings.startupDelay : 1)
   }
 
   if (atLogin && settings.minimizeEditor) {
