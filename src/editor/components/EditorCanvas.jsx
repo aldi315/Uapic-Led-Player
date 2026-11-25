@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState, useCallback, useLayoutEffect, useEffe
 import useEditorStore from '../../store/useEditorStore'
 import { Monitor, Lock, Upload } from 'lucide-react'
 import { MediaObjectRenderer } from '../../player/MediaRenderers'
+import Watermark from '../../player/Watermark'
 import { addMediaFiles, mediaTypeFromName, openProject } from '../projectActions'
 
 // ─── Resize handle geometry ──────────────────────────────────────────────────
@@ -304,6 +305,8 @@ export default function EditorCanvas() {
               transform: `scale(${scale})`,
             }}
           >
+            {/* Same idle watermark the output shows when no layer is visible */}
+            {!sorted.some((o) => o.visible !== false) && <Watermark width={cw} height={ch} />}
             {sorted.map((obj) => (
               <MediaObjectRenderer key={obj.id} obj={obj} isPaused playCommand="pause" preview />
             ))}
@@ -339,7 +342,9 @@ export default function EditorCanvas() {
 
         {mediaObjects.length === 0 && !dropActive && (
           <div className="canvas-empty-hint">
-            Add media from the left panel, or drag video &amp; image files here
+            <span className="canvas-empty-chip">
+              Add media from the left panel, or drag video &amp; image files here
+            </span>
           </div>
         )}
       </div>

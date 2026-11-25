@@ -55,7 +55,7 @@ function fileName(p) {
   return p.split(/[\\/]/).pop()
 }
 
-export default function Titlebar({ onShowShortcuts, onShowAbout }) {
+export default function Titlebar({ onShowShortcuts, onShowAbout, onShowStartup }) {
   const s = useEditorStore()
   const [openMenu, setOpenMenu] = useState(null)
   const [maximized, setMaximized] = useState(false)
@@ -135,6 +135,7 @@ export default function Titlebar({ onShowShortcuts, onShowAbout }) {
     { label: 'Show Output Window', checked: ps.visible, onClick: () => api()?.playerSetVisible(!ps.visible) },
     { label: 'Output Full Screen', checked: ps.fullscreen, onClick: () => api()?.playerToggleFullscreen() },
     { label: 'Always on Top', checked: ps.alwaysOnTop, onClick: () => api()?.playerSetAlwaysOnTop(!ps.alwaysOnTop) },
+    { label: 'Startup & Autoplay…', onClick: onShowStartup },
     { sep: true },
     { header: 'SEND OUTPUT TO DISPLAY' },
     ...(displays.length === 0 ? [{ label: 'No displays found', disabled: true }] : []),

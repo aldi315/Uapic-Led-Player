@@ -4,6 +4,7 @@ import { CANVAS_PRESETS } from '../../data/scenes/defaultScene'
 import { VIDEO_EXT, IMAGE_EXT, mediaTypeFromName } from '../projectActions'
 import { TYPE_META } from './MediaLibrary'
 import { parseYouTube, describeYouTube } from '../../engine/youtube'
+import { toMediaUrl, mediaUrlToPath, isLocalPath } from '../../engine/mediaUrl'
 import {
   Settings2, Layers, Monitor, Copy, Trash2, FolderOpen, ArrowLeftRight,
   AlignStartVertical, AlignCenterVertical, AlignEndVertical,
@@ -175,7 +176,7 @@ function FileField({ obj, update, kind }) {
     )
     if (result) update({ src: result.url, name: result.name.replace(/\.[^.]+$/, '') }, null)
   }
-  const display = obj.src?.startsWith('media:///') ? decodeURIComponent(obj.src.slice(9)) : obj.src || ''
+  const display = mediaUrlToPath(obj.src)
   return (
     <div className="prop-field">
       <label className="prop-label">FILE</label>
@@ -188,7 +189,7 @@ function FileField({ obj, update, kind }) {
           onChange={(e) => {
             const v = e.target.value
             // Accept a pasted local path or any URL
-            const src = /^[a-z]:[\\/]/i.test(v) || v.startsWith('/') ? 'media:///' + v.replace(/\\/g, '/') : v
+            const src = isLocalPath(v) ? toMediaUrl(v) : v
             update({ src })
           }}
           placeholder="Browse or paste a path / URL…"

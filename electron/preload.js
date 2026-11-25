@@ -65,6 +65,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openProject: (filePath) => ipcRenderer.invoke('open-project', filePath),
   saveProject: (data, currentPath) => ipcRenderer.invoke('save-project', { data, currentPath }),
   onOpenProjectFile: (cb) => subscribe('open-project-file', cb),
+  // Editor subscribed: returns a project the main process parked for it (or null)
+  editorReady: () => ipcRenderer.invoke('editor-ready'),
 
   showMessageBox: (options) => ipcRenderer.invoke('show-message-box', options),
+
+  // ── App settings (start with Windows, start-up autoplay) ─────────
+  getAppSettings: ()        => ipcRenderer.invoke('get-app-settings'),
+  setAppSettings: (changes) => ipcRenderer.invoke('set-app-settings', changes),
 })

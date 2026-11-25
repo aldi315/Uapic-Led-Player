@@ -3,7 +3,7 @@ import EditorLayout from './layouts/EditorLayout'
 import useEditorStore from '../store/useEditorStore'
 import {
   newProject, openProject, saveProject, requestExit,
-  handleOpenResult, importMedia, pushScene, confirmDiscardChanges,
+  handleOpenResult, importMedia, pushScene, confirmDiscardChanges, startupPlayback,
 } from './projectActions'
 
 function isTypingTarget(el) {
@@ -17,13 +17,19 @@ export default function EditorApp() {
   useEffect(() => {
     const api = window.electronAPI
     if (!api) return
+    const openFromMain = async (res) => {
+      if (!res || !(await confirmDiscardChanges())) return
+      handleOpenResult(res)
+      if (res.autoPlay && res.data && !res.error) startupPlayback(res.delay)
+    }
     const unsubs = [
       api.onCloseRequested?.(() => requestExit()),
-      api.onOpenProjectFile?.(async (res) => {
-        if (await confirmDiscardChanges()) handleOpenResult(res)
-      }),
+      api.onOpenProjectFile?.(openFromMain),
       api.onPlayerStatus?.((status) => useEditorStore.getState().setPlayerStatus(status)),
     ]
+    // Now subscribed: pick up a project opened before the editor was ready
+    // (double-clicked .ulp, start-up autoplay)
+    api.editorReady?.().then(openFromMain)
     api.requestPlayerStatus?.()
     return () => unsubs.forEach((u) => typeof u === 'function' && u())
   }, [])

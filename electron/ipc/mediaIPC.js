@@ -1,4 +1,5 @@
 const { ipcMain } = require('electron')
+const { isOutputFullscreen, toggleOutputFullscreen } = require('../windows/playerWindow')
 
 let currentScene = null
 let playerReady = false
@@ -20,25 +21,43 @@ function setupMediaIPC(getPlayerWindow, getControlWindow) {
     getControlWindow()?.webContents.send('player-status', {
       connected: !!player && playerReady,
       visible: !!player && player.isVisible(),
-      fullscreen: !!player && player.isFullScreen(),
+      fullscreen: isOutputFullscreen(),
       alwaysOnTop,
       hasScene: !!currentScene,
     })
   }
 
+  /**
+   * Keep the output above every other window. Windows drops the topmost flag
+   * in some cases (fullscreen changes, other topmost apps, explorer restarts),
+   * so it is re-applied on window events and on a short heartbeat.
+   */
+  const enforceOnTop = () => {
+    const player = getPlayerWindow()
+    if (!player || !alwaysOnTop || !player.isVisible()) return
+    if (!player.isAlwaysOnTop()) player.setAlwaysOnTop(true, 'screen-saver')
+    player.moveTop() // does not steal keyboard focus
+  }
+
   // Keep status fresh when the player window changes by itself (F11, Esc…)
   const player = getPlayerWindow()
   if (player) {
-    ;['enter-full-screen', 'leave-full-screen', 'show', 'hide'].forEach((ev) =>
+    player.setAlwaysOnTop(alwaysOnTop, 'screen-saver')
+    ;['output-fullscreen-changed', 'show', 'hide'].forEach((ev) =>
       player.on(ev, sendStatus)
     )
+    ;['blur', 'show', 'restore', 'output-fullscreen-changed'].forEach((ev) =>
+      player.on(ev, () => setTimeout(enforceOnTop, 50))
+    )
+    const heartbeat = setInterval(enforceOnTop, 1500)
+    player.on('closed', () => clearInterval(heartbeat))
     player.webContents.on('did-start-loading', () => { playerReady = false; sendStatus() })
   }
 
   /** Size/position the output window to match the scene (unless fullscreen). */
   function applyWindowGeometry(scene) {
     const player = getPlayerWindow()
-    if (!player || player.isFullScreen()) return
+    if (!player || isOutputFullscreen()) return
     const scaleMode = scene.scaleMode || 'none'
     if (scaleMode === 'none' && scene.canvasSize?.width && scene.canvasSize?.height) {
       setPlayerContentSize(player, scene.canvasSize.width, scene.canvasSize.height)
@@ -102,19 +121,20 @@ function setupMediaIPC(getPlayerWindow, getControlWindow) {
   // Player window management
   ipcMain.on('player-toggle-fullscreen', () => {
     const player = getPlayerWindow()
-    if (player) player.setFullScreen(!player.isFullScreen())
+    if (player) toggleOutputFullscreen()
   })
 
   ipcMain.on('player-set-always-on-top', (event, value) => {
     alwaysOnTop = !!value
     getPlayerWindow()?.setAlwaysOnTop(alwaysOnTop, 'screen-saver')
+    enforceOnTop()
     sendStatus()
   })
 
   ipcMain.on('player-set-visible', (event, value) => {
     const player = getPlayerWindow()
     if (!player) return
-    if (value) player.showInactive()
+    if (value) { player.showInactive(); enforceOnTop() }
     else player.hide()
   })
 

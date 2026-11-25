@@ -7,7 +7,7 @@ const defaultScene = {
   name: 'Default Scene',
   duration: 0, // 0 = hold indefinitely
   backgroundColor: '#000000',
-  canvasSize: { width: 1920, height: 1080 },
+  canvasSize: { width: 600, height: 400 },
   windowPosition: { x: 0, y: 0 },
   // 'none'    → player window is resized to the canvas (1:1 pixel mapping)
   // 'fit'     → canvas scaled to fit the window, keeping aspect ratio
@@ -18,6 +18,7 @@ const defaultScene = {
 }
 
 export const CANVAS_PRESETS = [
+  { label: 'Default 600×400',   width: 600,  height: 400 },
   { label: 'Full HD 1920×1080', width: 1920, height: 1080 },
   { label: 'HD 1280×720',       width: 1280, height: 720 },
   { label: '4K UHD 3840×2160',  width: 3840, height: 2160 },

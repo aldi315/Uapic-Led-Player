@@ -5,9 +5,7 @@ const path = require('path')
 const PROJECT_FILTERS = [{ name: 'UAPIC Project Files', extensions: ['ulp'] }]
 
 /** Absolute file path → media:// URL understood by both renderers. */
-function toMediaUrl(filePath) {
-  return 'media:///' + filePath.replace(/\\/g, '/')
-}
+const { toMediaUrl } = require('../mediaProtocol')
 
 /** Read + parse a .ulp file. Returns { data, filePath } or { error }. */
 function readProjectFile(filePath) {

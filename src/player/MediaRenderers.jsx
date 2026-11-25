@@ -10,6 +10,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState, memo } from 'react'
 import { fetchWeather, describeWeather } from '../engine/weather'
 import { parseYouTube, buildEmbedUrl, thumbnailUrl, describeYouTube } from '../engine/youtube'
+import { mediaUrlToPath } from '../engine/mediaUrl'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -40,6 +41,11 @@ function boxStyle(obj, extra = {}) {
     overflow: 'hidden',
     ...extra,
   }
+}
+
+/** Last part of a media URL or path, for error labels. */
+function fileName(src) {
+  return mediaUrlToPath(src).split(/[\\/]/).pop()
 }
 
 function Missing({ label, preview }) {
@@ -135,12 +141,20 @@ const VideoObject = memo(function VideoObject({ obj, isPaused, playCommand, prev
         preload={preview ? 'metadata' : 'auto'}
         onError={() => setError(true)}
         onLoadedData={() => setError(false)}
+        onEnded={(e) => {
+          // Safety net: `loop` normally prevents 'ended'; restart by hand if a
+          // file still stops (e.g. a source that cannot seek back to 0)
+          if (preview || obj.loop === false || pausedRef.current) return
+          const v = e.currentTarget
+          v.currentTime = 0
+          v.play().catch(() => {})
+        }}
         style={{ ...FILL, objectFit: obj.objectFit || 'cover', background: '#000' }}
       />
       {error && (
         <div style={{ position: 'absolute', inset: 0 }}>
           <Missing label={`Video not found
-${decodeURIComponent(obj.src.split('/').pop())}`} preview={preview} />
+${fileName(obj.src)}`} preview={preview} />
         </div>
       )}
     </>
@@ -153,7 +167,7 @@ const ImageObject = memo(function ImageObject({ obj, preview }) {
   const [error, setError] = useState(false)
   useEffect(() => setError(false), [obj.src])
   if (!obj.src) return preview ? <Placeholder label="🖼 No image selected" color="#22c55e" /> : null
-  if (error) return <Missing label={`Image not found\n${decodeURIComponent(obj.src.split('/').pop())}`} preview={preview} />
+  if (error) return <Missing label={`Image not found\n${fileName(obj.src)}`} preview={preview} />
   return (
     <img
       src={obj.src}

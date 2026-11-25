@@ -28,13 +28,6 @@ class DisplayManager {
     const { x, y } = display.bounds
     browserWindow.setPosition(x, y)
   }
-
-  /** Cover a display completely with a BrowserWindow. */
-  setFullscreenOnDisplay(browserWindow, display) {
-    const { x, y, width, height } = display.bounds
-    browserWindow.setBounds({ x, y, width, height })
-    browserWindow.setFullScreen(true)
-  }
 }
 
 module.exports = new DisplayManager()

@@ -121,3 +121,17 @@ export function pushScene() {
   store().pushToPlayer()
   store().setIsPlaying(true)
 }
+
+/**
+ * Start-up autoplay: wait `delay` seconds (displays / LED sender / network
+ * coming up after a reboot), then push the loaded project and play it.
+ */
+export function startupPlayback(delay = 0) {
+  const seconds = Math.max(0, Number(delay) || 0)
+  if (seconds >= 2) store().showToast(`Auto play in ${seconds} s…`)
+  setTimeout(() => {
+    pushScene()
+    api()?.playerPlay()
+    store().showToast('Auto play started', 'success')
+  }, seconds * 1000)
+}

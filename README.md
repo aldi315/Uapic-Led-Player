@@ -37,6 +37,13 @@ Uapic LED Player is designed specifically for controlling Videotrons, LED matrix
 *   Choose the target monitor from **Player → Send output to display**, toggle fullscreen / always-on-top / visibility.
 *   **Scaling modes:** 1:1 (window sized to the canvas), Fit (keep aspect) or Stretch.
 *   Optional hidden mouse cursor; `F11` toggles fullscreen and `Esc` leaves it.
+*   Always on top of other windows; pixel-exact placement (POS X / POS Y map to the first screen pixel).
+*   Shows a tiled UAPIC watermark while no layer is visible.
+
+### Startup & Autoplay (unattended screens)
+*   **Player → Startup & Autoplay…**: start with Windows, open a chosen `.ulp` and play it automatically.
+*   Configurable delay after a Windows start (displays, LED sender and network come up first) and an option to minimize the editor.
+*   For a fully unattended PC also enable Windows auto sign-in, disable sleep, and set the BIOS to power on after a power loss.
 
 ### Widgets
 *   **Weather** uses live data from [Open-Meteo](https://open-meteo.com) (no API key; city name or `lat,lon`).

@@ -1,5 +1,6 @@
 const { ipcMain } = require('electron')
 const displayManager = require('../displays/displayManager')
+const { enterOutputFullscreen, exitOutputFullscreen } = require('../windows/playerWindow')
 
 function setupDisplayIPC(getPlayerWindow) {
   ipcMain.handle('get-displays', () => {
@@ -20,10 +21,10 @@ function setupDisplayIPC(getPlayerWindow) {
     const player = getPlayerWindow()
     const display = displayManager.getDisplayById(displayId)
     if (!player || !display) return false
-    if (player.isFullScreen()) player.setFullScreen(false)
     if (fullscreen) {
-      displayManager.setFullscreenOnDisplay(player, display)
+      enterOutputFullscreen(display)
     } else {
+      exitOutputFullscreen()
       displayManager.moveWindowToDisplay(player, display)
     }
     return true

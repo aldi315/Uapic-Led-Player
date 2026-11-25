@@ -1,7 +1,9 @@
-const { app, protocol, net, session, screen } = require('electron')
+const { app, protocol, session, screen, ipcMain } = require('electron')
 const fs = require('fs')
 const path = require('path')
-const { pathToFileURL } = require('url')
+const { handleMediaRequest } = require('./mediaProtocol')
+const { setupSettingsIPC } = require('./ipc/settingsIPC')
+const { loadSettings, applyLoginItem, launchedAtLogin } = require('./settings')
 const { createControlWindow } = require('./windows/controlWindow')
 const { createPlayerWindow, getPlayerWindow } = require('./windows/playerWindow')
 const { setupWindowIPC } = require('./ipc/windowIPC')
@@ -26,6 +28,8 @@ protocol.registerSchemesAsPrivileged([
   {
     scheme: 'media',
     privileges: {
+      // standard: required for <video> to seek (and so loop) over a custom scheme
+      standard: true,
       bypassCSP: true,
       stream: true,
       supportFetchAPI: true,
@@ -53,15 +57,29 @@ function getControlWindow() {
   return controlWindow && !controlWindow.isDestroyed() ? controlWindow : null
 }
 
-/** Send a project file to the control window so the editor can load it. */
-function openProjectInControl(filePath) {
+/**
+ * Send a project file to the control window so the editor can load it.
+ * `extra` rides along, e.g. { autoPlay: true, delay: 10 } for start-up playback.
+ */
+function openProjectInControl(filePath, extra = {}) {
   const win = getControlWindow()
   if (!win || !filePath) return
-  const result = readProjectFile(filePath)
-  const send = () => win.webContents.send('open-project-file', result)
-  if (win.webContents.isLoading()) win.webContents.once('did-finish-load', send)
-  else send()
+  const result = { ...readProjectFile(filePath), ...extra }
+  // Until the editor has subscribed, a sent message would be lost: park it and
+  // hand it over when the editor asks (editor-ready).
+  if (editorReady) win.webContents.send('open-project-file', result)
+  else pendingOpen = result
 }
+
+let editorReady = false
+let pendingOpen = null
+
+ipcMain.handle('editor-ready', () => {
+  editorReady = true
+  const res = pendingOpen
+  pendingOpen = null
+  return res
+})
 
 app.on('second-instance', (event, argv) => {
   const win = getControlWindow()
@@ -81,18 +99,8 @@ app.on('open-file', (event, filePath) => {
 })
 
 app.whenReady().then(() => {
-  // media:///C:/Users/foo/bar.mp4 → C:/Users/foo/bar.mp4
-  session.defaultSession.protocol.handle('media', (request) => {
-    let filePath = decodeURIComponent(request.url.slice('media:///'.length))
-    // POSIX paths lose their leading slash when written as media:///home/...
-    if (process.platform !== 'win32' && !filePath.startsWith('/')) filePath = '/' + filePath
-    if (!fs.existsSync(filePath)) {
-      return new Response('Not found', { status: 404 })
-    }
-    return net.fetch(pathToFileURL(filePath).toString(), {
-      headers: request.headers, // keep Range headers so videos can seek
-    })
-  })
+  // media:///C:/Users/foo/bar.mp4 → C:/Users/foo/bar.mp4, seekable (206 ranges)
+  session.defaultSession.protocol.handle('media', handleMediaRequest)
 
   // YouTube refuses embeds that arrive without a Referer ("Error 153 – video
   // player configuration error"). The packaged app loads its pages from
@@ -114,9 +122,28 @@ app.whenReady().then(() => {
   setupDialogIPC(getControlWindow)
   setupDisplayIPC(getPlayerWindow, getControlWindow)
 
+  setupSettingsIPC()
+
+  const settings = loadSettings()
+  const atLogin = launchedAtLogin()
+  // Keep the Windows start-up entry pointing at this copy of the app (reinstalls, moved portable exe)
+  if (settings.startWithWindows) applyLoginItem(settings)
+
   if (pendingProjectPath) {
+    // A double-clicked .ulp wins over the start-up project
     openProjectInControl(pendingProjectPath)
     pendingProjectPath = null
+  } else if (settings.autoPlay && settings.startupProject) {
+    // Start-up playback: open the chosen project, then push + play it. After a
+    // Windows sign-in wait a little so displays, LED senders and network are up.
+    openProjectInControl(settings.startupProject, {
+      autoPlay: true,
+      delay: atLogin ? settings.startupDelay : 1,
+    })
+  }
+
+  if (atLogin && settings.minimizeEditor) {
+    controlWindow.once('show', () => controlWindow.minimize())
   }
 
   // Closing either window quits the app

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState, memo } from 'react'
 import { MediaObjectRenderer } from './MediaRenderers'
+import Watermark from './Watermark'
 
 function useWindowSize() {
   const [size, setSize] = useState({ w: window.innerWidth, h: window.innerHeight })
@@ -26,7 +27,14 @@ export default memo(function PlayerCanvas({ scene, isPaused, playCommand }) {
     document.body.style.cursor = scene?.hideCursor ? 'none' : ''
   }, [scene?.hideCursor])
 
-  if (!scene) return <div style={{ position: 'absolute', inset: 0, background: '#000' }} />
+  // Nothing pushed yet → watermark across the whole window
+  if (!scene) {
+    return (
+      <div style={{ position: 'absolute', inset: 0, background: '#000' }}>
+        <Watermark width={w} height={h} />
+      </div>
+    )
+  }
 
   const cw = scene.canvasSize?.width || w
   const ch = scene.canvasSize?.height || h
@@ -60,6 +68,7 @@ export default memo(function PlayerCanvas({ scene, isPaused, playCommand }) {
           willChange: 'transform',
         }}
       >
+        {sortedObjects.length === 0 && <Watermark width={cw} height={ch} />}
         {sortedObjects.map((obj) => (
           <MediaObjectRenderer key={obj.id} obj={obj} isPaused={isPaused} playCommand={playCommand} />
         ))}

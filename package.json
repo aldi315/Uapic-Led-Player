@@ -1,7 +1,7 @@
 {
   "name": "uapic-led-player",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Digital signage & LED display player (dual-window editor + output)",
   "main": "electron/main.js",
   "scripts": {

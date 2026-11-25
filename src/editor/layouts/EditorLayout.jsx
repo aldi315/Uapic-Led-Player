@@ -4,6 +4,7 @@ import EditorToolbar from '../components/EditorToolbar'
 import MediaLibrary from '../components/MediaLibrary'
 import EditorCanvas from '../components/EditorCanvas'
 import PropertiesInspector from '../components/PropertiesInspector'
+import StartupSettings from '../components/StartupSettings'
 import useEditorStore from '../../store/useEditorStore'
 import { X } from 'lucide-react'
 import uapicLogo from '../../assets/uapic-logo.png'
@@ -59,7 +60,7 @@ export default function EditorLayout() {
 
   return (
     <div className="editor-root">
-      <EditorTitlebar onShowShortcuts={() => setModal('shortcuts')} onShowAbout={() => setModal('about')} />
+      <EditorTitlebar onShowShortcuts={() => setModal('shortcuts')} onShowAbout={() => setModal('about')} onShowStartup={() => setModal('startup')} />
 
       <div className="editor-body">
         <MediaLibrary />
@@ -87,6 +88,12 @@ export default function EditorLayout() {
               </div>
             ))}
           </div>
+        </Modal>
+      )}
+
+      {modal === 'startup' && (
+        <Modal title="Startup & Autoplay" onClose={() => setModal(null)}>
+          <StartupSettings />
         </Modal>
       )}
 
